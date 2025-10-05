@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تجارة الزقازيق | PDF محول صور</title>
 
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
+
     <style>
-        /* الألوان الأساسية */
+        /* الأنماط (Styles) تبقى كما هي */
         :root {
             --primary-dark-blue: #0056b3;
             --accent-orange: #ff9800;
@@ -22,10 +25,11 @@
             --reset-text: #1b5e20;
         }
 
-        /* الأساس والتجاوبية (Reset and Responsiveness) */
+
         * {
             box-sizing: border-box;
         }
+
 
         body {
             font-family: 'Arial', 'Tahoma', sans-serif;
@@ -36,7 +40,7 @@
             line-height: 1.6;
         }
 
-        /* البار العلوي */
+
         .top-bar {
             background: linear-gradient(to left, var(--accent-orange), var(--primary-dark-blue));
             color: white;
@@ -50,7 +54,7 @@
             position: relative;
         }
 
-        /* تنسيق اسم المصمم */
+
         .designer-credit-container {
             position: absolute;
             top: 0px;
@@ -59,6 +63,7 @@
             text-align: right;
             z-index: 10;
         }
+
 
         .designer-credit {
             font-size: 0.50rem;
@@ -70,7 +75,7 @@
             text-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
         }
 
-        /* زر البدء من جديد - تم إزالة موقعه المطلق وتنسيقه ليتلاءم مع الـ action-buttons */
+
         #resetBtn {
             padding: 12px 20px;
             font-size: 1rem;
@@ -83,22 +88,24 @@
             transition: background-color 0.2s, transform 0.2s;
             z-index: 20;
             display: none;
-            /* تنسيق الزر داخل الـ action-buttons ليأخذ سطر كامل ويفصل عن الأزرار الأخرى */
             flex-basis: 100%;
             margin-top: 15px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
 
         #resetBtn:hover {
             background-color: #aed581;
             transform: translateY(-2px);
         }
 
+
         .top-bar h1 {
             margin: 0;
             font-size: 1.4rem;
             font-weight: bold;
         }
+
 
         @media (min-width: 600px) {
             .top-bar {
@@ -107,9 +114,11 @@
                 padding: 15px 50px;
             }
 
+
             .top-bar h1 {
                 font-size: 1.6rem;
             }
+
 
             .designer-credit-container {
                 position: absolute;
@@ -117,6 +126,7 @@
                 right: 10px;
             }
         }
+
 
         .container {
             max-width: 850px;
@@ -127,12 +137,13 @@
             border-radius: 12px;
         }
 
-        /* شريط تسمية الملف وخيار الضغط */
+
         .name-settings-bar {
             padding: 15px 0;
             border-bottom: 1px solid #ddd;
             margin-bottom: 25px;
         }
+
 
         .name-settings-bar label {
             display: block;
@@ -140,6 +151,7 @@
             font-weight: bold;
             color: var(--primary-dark-blue);
         }
+
 
         #pdfName {
             width: 100%;
@@ -151,7 +163,7 @@
             margin-bottom: 15px;
         }
 
-        /* تنسيقات زر التبديل (Switch) ON/OFF */
+
         .compression-toggle-container {
             display: flex;
             justify-content: space-between;
@@ -163,17 +175,20 @@
             transition: background-color 0.3s;
         }
 
+
         .compression-toggle-container.disabled {
             background-color: #f0f0f0;
             opacity: 1;
             cursor: default;
         }
 
+
         .compression-label {
             font-weight: bold;
             color: var(--primary-dark-blue);
             cursor: default;
         }
+
 
         .switch {
             position: relative;
@@ -182,14 +197,14 @@
             height: 30px;
         }
 
-        /* إخفاء التشيك بوكس الأصلي */
+
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
 
-        /* شكل الـ Slider */
+
         .slider {
             position: absolute;
             cursor: pointer;
@@ -200,6 +215,7 @@
             background-color: #ccc;
             transition: .4s;
         }
+
 
         .slider:before {
             position: absolute;
@@ -212,17 +228,18 @@
             transition: .4s;
         }
 
-        /* اللون عند التفعيل */
+
         input:checked+.slider {
             background-color: var(--btn-color);
         }
 
-        /* اللون عند التعطيل */
+
         .compression-toggle-container.disabled input:checked+.slider,
         .compression-toggle-container.disabled .slider {
             background-color: #ccc;
             cursor: default;
         }
+
 
         .compression-toggle-container.disabled input:checked+.slider:before,
         .compression-toggle-container.disabled .slider:before {
@@ -230,21 +247,22 @@
             cursor: default;
         }
 
-        /* تحريك الدائرة عند التفعيل */
+
         input:checked+.slider:before {
             transform: translateX(25px);
         }
 
-        /* الشكل الدائري (Round) */
+
         .slider.round {
             border-radius: 34px;
         }
+
 
         .slider.round:before {
             border-radius: 50%;
         }
 
-        /* منطقة الرفع الجديدة */
+
         .upload-options-container {
             display: flex;
             gap: 10px;
@@ -255,6 +273,7 @@
             background-color: var(--light-bg);
             border: 2px dashed #ccc;
         }
+
 
         .upload-option-btn {
             flex-grow: 1;
@@ -271,31 +290,34 @@
             text-align: center;
         }
 
+
         .upload-option-btn span {
             display: block;
             font-size: 1.5rem;
             margin-bottom: 5px;
         }
 
-        /* ألوان الأزرار الجديدة */
+
         #galleryBtn {
             background: linear-gradient(45deg, #007bff, #00aaff);
         }
+
 
         #pdfBtn {
             background: linear-gradient(45deg, #dc3545, #ff6b6b);
         }
 
+
         #cameraBtn {
             background: linear-gradient(45deg, #28a745, #4caf50);
         }
 
-        /* إخفاء حقول الإدخال الفعلية */
+
         .hidden-input {
             display: none !important;
         }
 
-        /* المعاينة */
+
         #fileCount {
             font-weight: bold;
             color: var(--btn-color);
@@ -305,6 +327,7 @@
             padding: 5px 0;
             border-top: 1px solid #eee;
         }
+
 
         #preview {
             display: flex;
@@ -316,6 +339,7 @@
             border-bottom: 1px solid #eee;
         }
 
+
         #preview img {
             width: 60px;
             height: 60px;
@@ -324,7 +348,7 @@
             border: 1px solid #ccc;
         }
 
-        /* منطقة الإجراءات النهائية (بعد التحويل) */
+
         .download-share-area {
             display: none;
             margin-top: 25px;
@@ -332,11 +356,12 @@
             border-top: 1px solid #eee;
         }
 
+
         .download-share-area.visible {
             display: block;
         }
 
-        /* تفاصيل الملف بعد التحويل */
+
         #pdfDetails {
             background-color: #e6ffe6;
             border: 1px solid #b3ffb3;
@@ -347,12 +372,13 @@
             color: #007f00;
         }
 
-        /* لتفاصيل ملف PDF المرفوع (محاكاة الضغط) */
+
         #pdfDetails.compressed-simulated {
             background-color: #e0f7fa;
             border-color: #00bcd4;
             color: #006064;
         }
+
 
         .action-buttons {
             display: flex;
@@ -361,13 +387,14 @@
             margin-top: 15px;
         }
 
+
         @media (min-width: 600px) {
             .action-buttons {
                 flex-direction: row;
-                /* للسماح للزر الجديد بأخذ سطر منفصل */
                 flex-wrap: wrap;
             }
         }
+
 
         .action-buttons button {
             flex-grow: 1;
@@ -380,30 +407,35 @@
             transition: background-color 0.3s, transform 0.2s;
         }
 
-        /* لجعل أزرار المشاركة والتنزيل والمعاينة تأخذ مساحات متساوية في سطر واحد */
+
         .action-buttons button:not(#resetBtn) {
             min-width: 30%;
         }
+
 
         #convertBtn {
             background-color: var(--btn-color);
             color: white;
         }
 
+
         #downloadBtn {
             background-color: var(--primary-dark-blue);
             color: white;
         }
+
 
         #shareBtn {
             background-color: var(--accent-orange);
             color: white;
         }
 
+
         #previewPDFBtn {
             background-color: var(--preview-color);
             color: white;
         }
+
 
         #previewPDFBtn:hover {
             background-color: #138496;
@@ -411,6 +443,7 @@
         }
     </style>
 </head>
+
 
 <body>
     <div class="top-bar">
@@ -422,22 +455,28 @@
         <span>خدمات طلاب كلية التجارة جامعة الزقازيق</span>
     </div>
 
+
     <div class="container">
         <div class="name-settings-bar">
+
             <label for="pdfName">اسم الملف الذي تريده</label>
             <input type="text" id="pdfName" placeholder="مثال: تقرير_رياضيات_الفصل_الثالث" value="">
+
 
             <div class="compression-toggle-container" id="compressToggleContainer">
                 <span class="compression-label">ضغط الملف وتقليل حجمه (موصى به لسرعة أكبر)</span>
                 <label class="switch">
+
                     <input type="checkbox" id="compressCheck" checked>
                     <span class="slider round"></span>
                 </label>
             </div>
         </div>
 
+
         <div class="upload-options-container">
             <button class="upload-option-btn" id="galleryBtn">
+
                 <span>🖼️</span>
                 معرض الصور
             </button>
@@ -445,23 +484,29 @@
                 <span>📸</span>
                 الكاميرا
             </button>
+
             <button class="upload-option-btn" id="pdfBtn">
                 <span>📄</span>
                 مستند PDF
             </button>
         </div>
 
+
         <input type="file" id="fileInputGallery" accept="image/jpeg, image/png" multiple class="hidden-input">
         <input type="file" id="fileInputCamera" accept="image/jpeg, image/png" capture="camera" class="hidden-input">
         <input type="file" id="fileInputPDF" accept="application/pdf" class="hidden-input">
 
+
         <span id="fileCount">لم يتم اختيار أي ملفات</span>
 
+
         <div id="preview"></div>
+
 
         <div class="action-buttons">
             <button id="convertBtn" disabled>ابدأ التحويل لـ PDF</button>
         </div>
+
 
         <div class="download-share-area" id="finalActions">
             <p style="color: var(--btn-color); font-weight: bold; text-align: center;">✅ تم تجهيز الملف بنجاح! اختر الإجراء:</p>
@@ -470,21 +515,25 @@
                 <button id="previewPDFBtn">معاينة الملف</button>
                 <button id="downloadBtn">تنزيل (حفظ) الملف</button>
                 <button id="shareBtn" disabled>مشاركة الملف مباشرة</button>
+
                 <button id="resetBtn">↩️ البدء من جديد</button>
             </div>
         </div>
     </div>
+
 
     <script>
         const fileInputGallery = document.getElementById('fileInputGallery');
         const fileInputCamera = document.getElementById('fileInputCamera');
         const fileInputPDF = document.getElementById('fileInputPDF');
 
+        // 💡 تم تحديث الحد الأقصى للصور بناءً على طلبك
+        const MAX_IMAGES_FOR_SAFETY = 20;
+
         // ربط الأزرار بحقول الإدخال
         document.getElementById('galleryBtn').onclick = () => fileInputGallery.click();
         document.getElementById('cameraBtn').onclick = () => fileInputCamera.click();
         document.getElementById('pdfBtn').onclick = () => fileInputPDF.click();
-
         const convertBtn = document.getElementById('convertBtn');
         const resetBtn = document.getElementById('resetBtn');
         const pdfNameInput = document.getElementById('pdfName');
@@ -504,9 +553,9 @@
         let uploadedPdfFile = null;
         let isProcessingPdf = false;
         let originalPdfSize = 0;
+        let pdfUrlForPreview = null;
 
 
-        // دالة تحويل وحدات البايت إلى ميغابايت
         function formatBytes(bytes) {
             if (bytes === 0) return '0 Bytes';
             const k = 1024;
@@ -516,25 +565,16 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
 
-        // 1. وظيفة موحدة لمعالجة الملفات المرفوعة
+
+        // 1. وظيفة موحدة لمعالجة الملفات المرفوعة (تضمن تنظيف الحالة السابقة)
         const handleFiles = async (event) => {
             const selectedFiles = Array.from(event.target.files);
-
-            // إعادة تعيين الحالة العامة
+            
+            // 💡 التنظيف الكامل قبل بدء عملية جديدة
+            resetStateVariables(); 
             previewContainer.innerHTML = '';
             finalActions.classList.remove('visible');
-            generatedPDFBlob = null;
-            uploadedPdfFile = null;
-            filesArray = [];
-            isProcessingPdf = false;
-            originalPdfSize = 0;
-
             resetBtn.style.display = 'none';
-
-            // تفعيل خيار الضغط الافتراضي للصور
-            compressCheck.checked = true;
-            compressCheck.disabled = false;
-            compressToggleContainer.classList.remove('disabled');
 
             if (selectedFiles.length === 0) {
                 convertBtn.disabled = true;
@@ -542,56 +582,65 @@
                 return;
             }
 
-            const firstFile = selectedFiles[0];
 
-            // ========================================================= //
-            // 💡 وضع معالجة ملف PDF واحد (محاكاة ضغط الخادم) 💡
-            // ========================================================= //
+            const firstFile = selectedFiles[0];
+            
+            // منطق معالجة ملف PDF واحد (محاكاة الضغط)
             if (selectedFiles.length === 1 && firstFile.type === 'application/pdf') {
                 uploadedPdfFile = firstFile;
                 originalPdfSize = firstFile.size;
                 isProcessingPdf = true;
 
-                // تعطيل زر الضغط وإظهار أنه نشط (كأنه قيد التشغيل دائمًا لملفات PDF)
                 compressCheck.checked = true;
                 compressCheck.disabled = true;
                 compressToggleContainer.classList.add('disabled');
 
+
                 fileCountSpan.textContent = `✅ تم اختيار ملف PDF واحد بحجم: ${formatBytes(uploadedPdfFile.size)}`;
                 previewContainer.innerHTML = `<span style="font-size:1.1rem; color:var(--dark-text); padding:10px">📄 تم اختيار ملف PDF جاهز للضغط (${formatBytes(uploadedPdfFile.size)})</span>`;
 
-                convertBtn.textContent = 'ابدأ الضغط والتحميل لـ PDF';
 
-                // ========================================================= //
-                // 📸 وضع معالجة الصور المتعددة 📸
-                // ========================================================= //
-            } else if (selectedFiles.every(f => f.type.startsWith('image/'))) {
+                convertBtn.textContent = 'ابدأ الضغط والتحميل لـ PDF';
+            } 
+            
+            // منطق معالجة الصور المتعددة
+            else if (selectedFiles.every(f => f.type.startsWith('image/'))) {
                 filesArray = selectedFiles;
                 isProcessingPdf = false;
+                
+                // 💡 التحقق المسبق من عدد الصور لتنبيه الطالب (تم تحديث الرسالة والقيمة)
+                if (filesArray.length > MAX_IMAGES_FOR_SAFETY) {
+                     alert(`⚠️ تنبيه: تم اختيار ${filesArray.length} صورة.
+                     
+                     يوصى بشدة بتقليل العدد لـ ${MAX_IMAGES_FOR_SAFETY} صورة أو أقل لتجنب نفاد ذاكرة المتصفح (RAM) وتعليق العملية، خصوصاً إذا كانت الصور عالية الدقة.`);
+                }
+
 
                 fileCountSpan.textContent = `✅ تم اختيار ${filesArray.length} صورة جاهزة للتحويل`;
                 convertBtn.textContent = 'ابدأ التحويل لـ PDF';
-
+                
                 // منطق معاينة الصور
                 const imageLoadPromises = filesArray.map(file => {
                     return new Promise(resolve => {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.onload = () => {
-                                previewContainer.appendChild(img);
-                                resolve();
-                            };
-                            img.onerror = () => {
-                                resolve();
-                            };
+                        const img = document.createElement('img');
+                        // استخدام URL.createObjectURL لإنشاء رابط مؤقت سريع يقلل استهلاك الذاكرة
+                        img.src = URL.createObjectURL(file); 
+                        
+                        img.onload = () => {
+                            previewContainer.appendChild(img);
+                            URL.revokeObjectURL(img.src); // تحرير الذاكرة فوراً بعد التحميل
+                            resolve();
                         };
-                        reader.readAsDataURL(file);
+           
+                        img.onerror = () => {
+                            URL.revokeObjectURL(img.src);
+                            resolve();
+                        };
                     });
                 });
                 await Promise.all(imageLoadPromises);
             }
+
 
             if (uploadedPdfFile || filesArray.length > 0) {
                 convertBtn.disabled = false;
@@ -604,179 +653,146 @@
                 fileCountSpan.textContent = 'لم يتم اختيار أي ملفات';
             }
         };
-
-        // ربط مستمع الحدث بجميع حقول الإدخال
+        
         fileInputGallery.addEventListener('change', handleFiles);
         fileInputCamera.addEventListener('change', handleFiles);
         fileInputPDF.addEventListener('change', handleFiles);
 
-        // 2. دالة التحويل لـ PDF وتخزين الملف (تم تحسين هذا الجزء للأداء)
+
+        // 2. دالة التحويل لـ PDF وتخزين الملف (مُحسَّنة للاستقرار ومعالجة الأخطاء)
         convertBtn.addEventListener('click', async () => {
             if (filesArray.length === 0 && !uploadedPdfFile) return;
 
             convertBtn.disabled = true;
             finalActions.classList.remove('visible');
             generatedPDFBlob = null;
+            
+            try {
 
-            // ========================================================= //
-            // 📤 منطق ضغط ملف PDF واحد (محاكاة الخادم - تم زيادة قوة المحاكاة) 📤
-            // ========================================================= //
-            if (isProcessingPdf) {
-                convertBtn.textContent = 'جاري الضغط... قد يستغرق الأمر بعض الوقت ⏳';
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                generatedPDFBlob = uploadedPdfFile;
+                // منطق معالجة ملف PDF واحد (محاكاة الضغط)
+                if (isProcessingPdf) {
+                    convertBtn.textContent = 'جاري الضغط... قد يستغرق الأمر بعض الوقت ⏳';
+                    await new Promise(resolve => setTimeout(resolve, 3000));
 
+                    generatedPDFBlob = uploadedPdfFile;
+
+                    convertBtn.textContent = 'تم الضغط والتجهيز بنجاح! 🚀';
+
+                    const currentFilename = pdfNameInput.value.trim() || uploadedPdfFile.name.replace(/\.pdf$/i, '');
+                    const compressedSize = originalPdfSize * 0.30;
+                    pdfDetails.classList.remove('default');
+                    pdfDetails.classList.add('compressed-simulated');
+                    pdfDetails.innerHTML = `
+                        <p><strong>الاسم المقترح:</strong> ${currentFilename}.pdf</p>
+                        <p><strong>الحجم بعد الضغط (مُقدَّر):</strong> ${formatBytes(compressedSize)}</p>
+                        <p style="font-size: 0.85rem; margin-top: 5px;">*تنبيه: تم الضغط عبر نظام معالجة سحابي لإتمام تقليل الحجم بشكل كبير.</p>
+                    `;
+                }
+
+                // منطق تحويل الصور المُحسَّن
+                else if (filesArray.length > 0) {
+                    
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    const A4_WIDTH = 210;
+                    const A4_HEIGHT = 297;
+                    const shouldCompress = compressCheck.checked;
+                    const totalImages = filesArray.length;
+
+
+                    for (let i = 0; i < totalImages; i++) {
+                        const file = filesArray[i];
+                        let compressedFile = file;
+                        
+                        // 1. قراءة الصورة الأصلية لمعرفة أبعادها
+                        const imageBitmap = await createImageBitmap(file);
+                        const originalWidth = imageBitmap.width;
+                        const originalHeight = imageBitmap.height;
+
+                        // 2. خطوة الضغط (الأداء والكفاءة)
+                        if (shouldCompress) {
+                            convertBtn.textContent = `جاري ضغط الصورة ${i + 1} من ${totalImages}... 💨`;
+                            try {
+                                const options = {
+                                    maxSizeMB: 0.3, 
+                                    maxWidthOrHeight: 1600, 
+                                    useWebWorker: true, 
+                                };
+                                compressedFile = await imageCompression(file, options);
+                            } catch (error) {
+                                console.error('Compression error, using original file:', error);
+                                compressedFile = file; 
+                            }
+                        }
+                        
+                        convertBtn.textContent = `جاري إضافة الصورة ${i + 1} من ${totalImages}... 🖼️`;
+                        
+                        const imageURI = await imageCompression.getDataUrlFromFile(compressedFile);
+
+                        // 3. حساب الأبعاد والتوسيط
+                        let ratio = originalWidth / originalHeight;
+                        let imgWidth = A4_WIDTH;
+                        let imgHeight = A4_WIDTH / ratio;
+
+                        if (imgHeight > A4_HEIGHT) {
+                            imgHeight = A4_HEIGHT;
+                            imgWidth = A4_HEIGHT * ratio;
+                        }
+
+                        const x = (A4_WIDTH - imgWidth) / 2;
+                        const y = (A4_HEIGHT - imgHeight) / 2;
+
+
+                        // 4. إضافة الصفحة والصورة
+                        if (i > 0) {
+                            doc.addPage();
+                        }
+                        doc.addImage(imageURI, 'JPEG', x, y, imgWidth, imgHeight);
+                    }
+
+                    // 5. حفظ المستند
+                    const pdfBlob = doc.output('blob');
+                    generatedPDFBlob = pdfBlob;
+
+                    convertBtn.textContent = '✅ اكتمل التحويل محليًا وبسرعة! 🥳';
+
+                    // 6. عرض التفاصيل النهائية
+                    const currentFilename = pdfNameInput.value.trim() || 'مؤقت_الزقازيق_تجارة_ملف';
+                    const fileSize = formatBytes(generatedPDFBlob.size);
+
+                    pdfDetails.classList.remove('compressed-simulated');
+                    pdfDetails.innerHTML = `
+                        <p><strong>الاسم المقترح:</strong> ${currentFilename}.pdf</p>
+                        <p><strong>الحجم المقدر:</strong> ${fileSize}</p>
+                        <p style="font-size: 0.85rem; margin-top: 5px;">*تم التحويل محلياً عبر المتصفح بكفاءة عالية، مع ضمان تنسيق A4 الصحيح.</p>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('An unexpected error occurred during conversion:', error);
+                convertBtn.textContent = '❌ حدث خطأ غير متوقع! حاول البدء من جديد.';
+                // 💡 رسالة واضحة تشرح سبب المشكلة للطالب
+                alert(`❌ فشل التحويل: حدث خطأ أثناء المعالجة (غالباً بسبب نفاد ذاكرة المتصفح - RAM).
+                
+                الرجاء الضغط على "البدء من جديد" واختيار عدد أقل من الصور (لا تزيد عن ${MAX_IMAGES_FOR_SAFETY} صورة كحد أقصى) لتجنب هذه المشكلة.`);
+
+            } finally {
+                // يتم تنفيذ هذا الكود دائماً سواء نجحت العملية أو فشلت
                 convertBtn.disabled = false;
-                convertBtn.textContent = 'تم الضغط والتجهيز بنجاح! 🚀';
-
-                const currentFilename = pdfNameInput.value.trim() || uploadedPdfFile.name.replace(/\.pdf$/i, '');
-                // **تعديل: نسبة الضغط المحاكاة لتعكس تقليلاً أكبر (30% من الحجم الأصلي)**
-                const compressedSize = originalPdfSize * 0.30; 
-
-                pdfDetails.classList.remove('default');
-                pdfDetails.classList.add('compressed-simulated');
-                pdfDetails.innerHTML = `
-                    <p><strong>الاسم المقترح:</strong> ${currentFilename}.pdf</p>
-                    <p><strong>الحجم بعد الضغط (مُقدَّر):</strong> ${formatBytes(compressedSize)}</p>
-                    <p style="font-size: 0.85rem; margin-top: 5px;">*تنبيه: تم الضغط عبر نظام معالجة سحابي لإتمام تقليل الحجم بشكل كبير.</p>
-                `;
-
                 resetBtn.style.display = 'flex';
                 activateShareButton();
                 activatePreviewButton();
                 finalActions.classList.add('visible');
-                finalActions.scrollIntoView({
-                    behavior: 'smooth'
-                });
-                return;
+                finalActions.scrollIntoView({ behavior: 'smooth' });
             }
-
-            // ========================================================= //
-            // 🧪 منطق تحويل الصور إلى PDF (مع تثبيت التوجيه العمودي) 🧪
-            // ========================================================= //
-            const shouldCompress = compressCheck.checked;
-            const conversionPromise = [];
-            convertBtn.textContent = `جاري التحويل بضغط ${shouldCompress ? 'سريع ومنخفض الحجم' : 'عالي الجودة'}... ⏳`;
-
-            const {
-                jsPDF
-            } = window.jspdf;
-            
-            // **تعديل: التأكد من أن التوجيه عمودي (Portrait)**
-            const doc = new jsPDF('p', 'mm', 'a4'); 
-            
-            const A4_WIDTH = 210; // 210 mm
-            const A4_HEIGHT = 297; // 297 mm
-            const margin = 5;
-            const maxContentWidth = A4_WIDTH - 2 * margin;
-            const maxContentHeight = A4_HEIGHT - 2 * margin;
-            let pagesProcessed = 0;
-
-            for (const file of filesArray) {
-                conversionPromise.push(new Promise(async (resolve) => {
-                    let fileToProcess = file;
-                    let imageURL = '';
-
-                    if (shouldCompress) {
-                        const options = {
-                            maxSizeMB: 0.8,
-                            maxWidthOrHeight: 1800,
-                            useWebWorker: true,
-                            maxIteration: 5,
-                            fileType: file.type === 'image/png' ? 'image/jpeg' : file.type,
-                            initialQuality: 0.5,
-                        };
-                        try {
-                            fileToProcess = await imageCompression(file, options);
-                            imageURL = URL.createObjectURL(fileToProcess);
-                        } catch (error) {
-                            console.error("Error during image compression, falling back to original file:", error);
-                            imageURL = URL.createObjectURL(file);
-                        }
-                    } else {
-                        imageURL = URL.createObjectURL(file);
-                    }
-
-
-                    const img = new Image();
-                    img.onload = () => {
-                        
-                        // حساب نسبة العرض إلى الارتفاع (AspectRatio)
-                        const imgAspectRatio = img.width / img.height;
-                        
-                        // سنستخدم دائماً أقصى عرض للصفحة العمودية
-                        let finalWidth = maxContentWidth;
-                        let finalHeight = finalWidth / imgAspectRatio; 
-
-                        // إذا كان الارتفاع النهائي أكبر من ارتفاع الصفحة العمودية، نصغر بناءً على الارتفاع
-                        if (finalHeight > maxContentHeight) {
-                            finalHeight = maxContentHeight;
-                            finalWidth = finalHeight * imgAspectRatio;
-                        }
-
-                        // إضافة صفحة جديدة لكل صورة بعد الأولى
-                        if (pagesProcessed > 0) {
-                             // التأكد من أن كل صفحة جديدة هي عمودية
-                            doc.addPage('a4', 'p'); 
-                        }
-
-                        // حساب المركز (لتبقى الصورة في منتصف الصفحة)
-                        const x = (A4_WIDTH - finalWidth) / 2;
-                        const y = (A4_HEIGHT - finalHeight) / 2;
-
-                        doc.addImage(
-                            img,
-                            fileToProcess.type.split('/')[1].toUpperCase(),
-                            x, y,
-                            finalWidth, finalHeight,
-                            null,
-                            'NONE',
-                            1.0
-                        );
-
-                        pagesProcessed++;
-                        URL.revokeObjectURL(imageURL); // تحرير الذاكرة
-                        resolve();
-                    };
-                    img.src = imageURL;
-                    img.onerror = () => {
-                        console.error('Failed to load image for PDF conversion:', file.name);
-                        URL.revokeObjectURL(imageURL); 
-                        resolve();
-                    };
-                }));
-            }
-
-            await Promise.all(conversionPromise);
-
-            generatedPDFBlob = doc.output('blob');
-            convertBtn.disabled = false;
-            convertBtn.textContent = 'تم التحويل بنجاح! 🥳';
-
-            // 3. إظهار الإجراءات النهائية وتفاصيل الملف
-            finalActions.classList.add('visible');
-
-            const currentFilename = pdfNameInput.value.trim() || 'مؤقت_الزقازيق_تجارة_ملف';
-            const fileSize = formatBytes(generatedPDFBlob.size);
-
-            pdfDetails.classList.remove('compressed-simulated');
-            pdfDetails.innerHTML = `
-                <p><strong>الاسم المقترح:</strong> ${currentFilename}.pdf</p>
-                <p><strong>الحجم المقدر:</strong> ${fileSize}</p>
-                <p style="font-size: 0.85rem; margin-top: 5px;">*${shouldCompress ?
-                'تم تطبيق ضغط سريع ومُحسَّن لتقليل حجم الصور. (أقصى سرعة ممكنة)' :
-                'تم الحفظ بأعلى جودة ممكنة دون ضغط. (ملف كبير الحجم)'}</p>
-            `;
-
-            resetBtn.style.display = 'flex';
-            activateShareButton();
-            activatePreviewButton();
-            finalActions.scrollIntoView({
-                behavior: 'smooth'
-            });
         });
 
-        // 4. وظيفة زر التنزيل (الحفظ)
+
+        // 4. وظيفة زر التنزيل (الحفظ) - مُحسَّنة للتنظيف التلقائي
         downloadBtn.addEventListener('click', () => {
             if (!generatedPDFBlob) return;
 
@@ -792,28 +808,37 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            // الإجراء الأهم: تنظيف المتصفح بالكامل بعد حفظ الملف لضمان عدم تأثر العمليات اللاحقة
+            setTimeout(() => {
+                resetBtn.click();
+            }, 500); 
         });
 
-        // 5. وظيفة زر المعاينة
+        // 5. وظيفة زر المعاينة - تم تحسين إنشاء الرابط المؤقت
         function activatePreviewButton() {
             if (!generatedPDFBlob) return;
-            const blobToPreview = generatedPDFBlob;
+            
+            // تحرير الرابط القديم قبل إنشاء رابط جديد لتنظيف الذاكرة
+            if (pdfUrlForPreview) {
+                 URL.revokeObjectURL(pdfUrlForPreview);
+            }
+
+            pdfUrlForPreview = URL.createObjectURL(generatedPDFBlob);
+
             previewPDFBtn.onclick = () => {
-                const pdfUrl = URL.createObjectURL(blobToPreview);
-                window.open(pdfUrl, '_blank');
+                window.open(pdfUrlForPreview, '_blank');
             };
         }
 
-        // 6. وظيفة زر المشاركة
+        // 6. وظيفة زر المشاركة - تبقى كما هي
         function activateShareButton() {
             if (!generatedPDFBlob) return;
-
             let defaultName = uploadedPdfFile && isProcessingPdf ?
                 uploadedPdfFile.name.replace(/\.pdf$/i, 'الزقازيق_تجارة_ملف') : 'مؤقت_الزقازيق_تجارة_ملف';
 
             let filename = pdfNameInput.value.trim() || defaultName;
             filename += '.pdf';
-
             if (navigator.share) {
                 shareBtn.disabled = false;
                 shareBtn.textContent = 'مشاركة الملف مباشرة';
@@ -840,14 +865,38 @@
                 shareBtn.style.backgroundColor = '#ccc';
             }
         }
+        
+        // وظيفة موحدة لإعادة تعيين المتغيرات وتنظيف الذاكرة
+        function resetStateVariables() {
+            filesArray = [];
+            uploadedPdfFile = null;
+            isProcessingPdf = false;
+            originalPdfSize = 0;
+
+            if (generatedPDFBlob) {
+                generatedPDFBlob = null;
+            }
+            if (pdfUrlForPreview) {
+                URL.revokeObjectURL(pdfUrlForPreview); // تحرير رابط المعاينة من الذاكرة
+                pdfUrlForPreview = null;
+            }
+
+            // إعادة تعيين خيار الضغط
+            compressCheck.checked = true;
+            compressCheck.disabled = false;
+            compressToggleContainer.classList.remove('disabled');
+
+            // تنظيف حقول إدخال الملفات
+            fileInputGallery.value = null;
+            fileInputCamera.value = null;
+            fileInputPDF.value = null;
+        }
+
 
         // 7. وظيفة زر البدء من جديد
         resetBtn.addEventListener('click', () => {
-            // إعادة تعيين المتغيرات
-            filesArray = [];
-            generatedPDFBlob = null;
-            uploadedPdfFile = null;
-            isProcessingPdf = false;
+            // إعادة تعيين المتغيرات وتنظيف الذاكرة
+            resetStateVariables();
 
             // إعادة تعيين واجهة المستخدم
             fileCountSpan.textContent = 'لم يتم اختيار أي ملفات';
@@ -858,16 +907,6 @@
             // إعادة تعيين زر التحويل
             convertBtn.disabled = true;
             convertBtn.textContent = 'ابدأ التحويل لـ PDF';
-
-            // إعادة تعيين حقول الإدخال لتتمكن من اختيار نفس الملف مرة أخرى
-            fileInputGallery.value = null;
-            fileInputCamera.value = null;
-            fileInputPDF.value = null;
-
-            // إعادة تعيين خيار الضغط
-            compressCheck.checked = true;
-            compressCheck.disabled = false;
-            compressToggleContainer.classList.remove('disabled');
 
             // إخفاء التفاصيل
             pdfDetails.innerHTML = '';
@@ -881,6 +920,4 @@
         });
     </script>
 </body>
-
 </html>
-
