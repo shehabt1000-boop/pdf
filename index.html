@@ -527,7 +527,7 @@
         const fileInputCamera = document.getElementById('fileInputCamera');
         const fileInputPDF = document.getElementById('fileInputPDF');
 
-        // 💡 تم تحديث الحد الأقصى للصور بناءً على طلبك
+        // 💡 تم تحديث الحد الأقصى للصور ليناسب الأجهزة القوية
         const MAX_IMAGES_FOR_SAFETY = 20;
 
         // ربط الأزرار بحقول الإدخال
@@ -608,18 +608,18 @@
                 filesArray = selectedFiles;
                 isProcessingPdf = false;
                 
-                // 💡 التحقق المسبق من عدد الصور لتنبيه الطالب (تم تحديث الرسالة والقيمة)
+                // 💡 التحقق المسبق من عدد الصور لتنبيه الطالب
                 if (filesArray.length > MAX_IMAGES_FOR_SAFETY) {
                      alert(`⚠️ تنبيه: تم اختيار ${filesArray.length} صورة.
                      
-                     يوصى بشدة بتقليل العدد لـ ${MAX_IMAGES_FOR_SAFETY} صورة أو أقل لتجنب نفاد ذاكرة المتصفح (RAM) وتعليق العملية، خصوصاً إذا كانت الصور عالية الدقة.`);
+                     يوصى بتقسيم العملية أو التأكد من أن متصفحك لديه ذاكرة كافية، حيث أن الحد الأقصى الموصى به هو ${MAX_IMAGES_FOR_SAFETY} صورة لتجنب التعليق.`);
                 }
 
 
                 fileCountSpan.textContent = `✅ تم اختيار ${filesArray.length} صورة جاهزة للتحويل`;
                 convertBtn.textContent = 'ابدأ التحويل لـ PDF';
                 
-                // منطق معاينة الصور
+                // منطق معاينة الصور (استخدمنا URL.createObjectURL لسرعة عرض المعاينة)
                 const imageLoadPromises = filesArray.map(file => {
                     return new Promise(resolve => {
                         const img = document.createElement('img');
@@ -693,72 +693,86 @@
                 else if (filesArray.length > 0) {
                     
                     const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF({
-                        unit: 'mm',
-                        format: 'a4'
-                    });
+                    // **تم تثبيت التوجيه عمودي (Portrait)**
+                    const doc = new jsPDF('p', 'mm', 'a4');
 
                     const A4_WIDTH = 210;
                     const A4_HEIGHT = 297;
                     const shouldCompress = compressCheck.checked;
                     const totalImages = filesArray.length;
 
+                    // مصفوفة لتخزين وعود المعالجة المتزامنة
+                    const conversionPromises = [];
+
 
                     for (let i = 0; i < totalImages; i++) {
                         const file = filesArray[i];
-                        let compressedFile = file;
                         
-                        // 1. قراءة الصورة الأصلية لمعرفة أبعادها
-                        const imageBitmap = await createImageBitmap(file);
-                        const originalWidth = imageBitmap.width;
-                        const originalHeight = imageBitmap.height;
-
-                        // 2. خطوة الضغط (الأداء والكفاءة)
-                        if (shouldCompress) {
-                            convertBtn.textContent = `جاري ضغط الصورة ${i + 1} من ${totalImages}... 💨`;
-                            try {
-                                const options = {
-                                    maxSizeMB: 0.3, 
-                                    maxWidthOrHeight: 1600, 
-                                    useWebWorker: true, 
-                                };
-                                compressedFile = await imageCompression(file, options);
-                            } catch (error) {
-                                console.error('Compression error, using original file:', error);
-                                compressedFile = file; 
+                        // إضافة كل عملية تحويل وضغط كـ Promise
+                        conversionPromises.push((async () => {
+                            let compressedFile = file;
+                            
+                            // 1. خطوة الضغط (تم تحسين الإعدادات هنا)
+                            if (shouldCompress) {
+                                try {
+                                    const options = {
+                                        // 💡 تم رفع القيمة لـ 0.8 للحفاظ على جودة أفضل
+                                        maxSizeMB: 0.8, 
+                                        // 💡 تم رفع القيمة لـ 1800 للحفاظ على وضوح أعلى
+                                        maxWidthOrHeight: 1800, 
+                                        useWebWorker: true, 
+                                        fileType: file.type === 'image/png' ? 'image/jpeg' : file.type,
+                                    };
+                                    compressedFile = await imageCompression(file, options);
+                                } catch (error) {
+                                    console.error('Compression error, using original file:', error);
+                                    compressedFile = file; 
+                                }
                             }
-                        }
-                        
-                        convertBtn.textContent = `جاري إضافة الصورة ${i + 1} من ${totalImages}... 🖼️`;
-                        
-                        const imageURI = await imageCompression.getDataUrlFromFile(compressedFile);
+                            
+                            // 2. القراءة والإضافة لملف PDF
+                            convertBtn.textContent = `جاري تجهيز ${i + 1} من ${totalImages} صورة... ⚙️`;
+                            
+                            const imageURI = await imageCompression.getDataUrlFromFile(compressedFile);
 
-                        // 3. حساب الأبعاد والتوسيط
-                        let ratio = originalWidth / originalHeight;
-                        let imgWidth = A4_WIDTH;
-                        let imgHeight = A4_WIDTH / ratio;
+                            return new Promise((resolve, reject) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    const originalWidth = img.width;
+                                    const originalHeight = img.height;
+                                    let ratio = originalWidth / originalHeight;
+                                    let imgWidth = A4_WIDTH;
+                                    let imgHeight = A4_WIDTH / ratio;
 
-                        if (imgHeight > A4_HEIGHT) {
-                            imgHeight = A4_HEIGHT;
-                            imgWidth = A4_HEIGHT * ratio;
-                        }
+                                    // حساب الأبعاد والتوسيط
+                                    if (imgHeight > A4_HEIGHT) {
+                                        imgHeight = A4_HEIGHT;
+                                        imgWidth = A4_HEIGHT * ratio;
+                                    }
 
-                        const x = (A4_WIDTH - imgWidth) / 2;
-                        const y = (A4_HEIGHT - imgHeight) / 2;
+                                    const x = (A4_WIDTH - imgWidth) / 2;
+                                    const y = (A4_HEIGHT - imgHeight) / 2;
 
-
-                        // 4. إضافة الصفحة والصورة
-                        if (i > 0) {
-                            doc.addPage();
-                        }
-                        doc.addImage(imageURI, 'JPEG', x, y, imgWidth, imgHeight);
+                                    if (i > 0) {
+                                        doc.addPage('a4', 'p');
+                                    }
+                                    doc.addImage(imageURI, 'JPEG', x, y, imgWidth, imgHeight);
+                                    resolve();
+                                };
+                                img.onerror = reject;
+                                img.src = imageURI;
+                            });
+                        })());
                     }
+                    
+                    // الانتظار حتى اكتمال جميع عمليات الضغط والإضافة بالتوازي
+                    await Promise.all(conversionPromises);
 
                     // 5. حفظ المستند
                     const pdfBlob = doc.output('blob');
                     generatedPDFBlob = pdfBlob;
 
-                    convertBtn.textContent = '✅ اكتمل التحويل محليًا وبسرعة! 🥳';
+                    convertBtn.textContent = '✅ اكتمل التحويل بنجاح! 🥳';
 
                     // 6. عرض التفاصيل النهائية
                     const currentFilename = pdfNameInput.value.trim() || 'مؤقت_الزقازيق_تجارة_ملف';
