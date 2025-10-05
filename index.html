@@ -527,9 +527,6 @@
         const fileInputCamera = document.getElementById('fileInputCamera');
         const fileInputPDF = document.getElementById('fileInputPDF');
 
-        // 💡 تم تحديث الحد الأقصى للصور ليناسب الأجهزة القوية
-        const MAX_IMAGES_FOR_SAFETY = 20;
-
         // ربط الأزرار بحقول الإدخال
         document.getElementById('galleryBtn').onclick = () => fileInputGallery.click();
         document.getElementById('cameraBtn').onclick = () => fileInputCamera.click();
@@ -553,7 +550,7 @@
         let uploadedPdfFile = null;
         let isProcessingPdf = false;
         let originalPdfSize = 0;
-        let pdfUrlForPreview = null;
+        let pdfUrlForPreview = null; // لتخزين رابط المعاينة المؤقت
 
 
         function formatBytes(bytes) {
@@ -607,19 +604,12 @@
             else if (selectedFiles.every(f => f.type.startsWith('image/'))) {
                 filesArray = selectedFiles;
                 isProcessingPdf = false;
-                
-                // 💡 التحقق المسبق من عدد الصور لتنبيه الطالب
-                if (filesArray.length > MAX_IMAGES_FOR_SAFETY) {
-                     alert(`⚠️ تنبيه: تم اختيار ${filesArray.length} صورة.
-                     
-                     يوصى بتقسيم العملية أو التأكد من أن متصفحك لديه ذاكرة كافية، حيث أن الحد الأقصى الموصى به هو ${MAX_IMAGES_FOR_SAFETY} صورة لتجنب التعليق.`);
-                }
 
 
                 fileCountSpan.textContent = `✅ تم اختيار ${filesArray.length} صورة جاهزة للتحويل`;
                 convertBtn.textContent = 'ابدأ التحويل لـ PDF';
                 
-                // منطق معاينة الصور (استخدمنا URL.createObjectURL لسرعة عرض المعاينة)
+                // منطق معاينة الصور
                 const imageLoadPromises = filesArray.map(file => {
                     return new Promise(resolve => {
                         const img = document.createElement('img');
@@ -665,8 +655,9 @@
 
             convertBtn.disabled = true;
             finalActions.classList.remove('visible');
-            generatedPDFBlob = null;
+            generatedPDFBlob = null; // إعادة تعيين الـ Blob قبل البدء
             
+            // 💡 استخدام try-catch-finally لضمان عدم تعليق الزر أبداً
             try {
 
                 // منطق معالجة ملف PDF واحد (محاكاة الضغط)
@@ -693,86 +684,72 @@
                 else if (filesArray.length > 0) {
                     
                     const { jsPDF } = window.jspdf;
-                    // **تم تثبيت التوجيه عمودي (Portrait)**
-                    const doc = new jsPDF('p', 'mm', 'a4');
+                    const doc = new jsPDF({
+                        unit: 'mm',
+                        format: 'a4'
+                    });
 
                     const A4_WIDTH = 210;
                     const A4_HEIGHT = 297;
                     const shouldCompress = compressCheck.checked;
                     const totalImages = filesArray.length;
 
-                    // مصفوفة لتخزين وعود المعالجة المتزامنة
-                    const conversionPromises = [];
-
 
                     for (let i = 0; i < totalImages; i++) {
                         const file = filesArray[i];
+                        let compressedFile = file;
                         
-                        // إضافة كل عملية تحويل وضغط كـ Promise
-                        conversionPromises.push((async () => {
-                            let compressedFile = file;
-                            
-                            // 1. خطوة الضغط (تم تحسين الإعدادات هنا)
-                            if (shouldCompress) {
-                                try {
-                                    const options = {
-                                        // 💡 تم رفع القيمة لـ 0.8 للحفاظ على جودة أفضل
-                                        maxSizeMB: 0.8, 
-                                        // 💡 تم رفع القيمة لـ 1800 للحفاظ على وضوح أعلى
-                                        maxWidthOrHeight: 1800, 
-                                        useWebWorker: true, 
-                                        fileType: file.type === 'image/png' ? 'image/jpeg' : file.type,
-                                    };
-                                    compressedFile = await imageCompression(file, options);
-                                } catch (error) {
-                                    console.error('Compression error, using original file:', error);
-                                    compressedFile = file; 
-                                }
-                            }
-                            
-                            // 2. القراءة والإضافة لملف PDF
-                            convertBtn.textContent = `جاري تجهيز ${i + 1} من ${totalImages} صورة... ⚙️`;
-                            
-                            const imageURI = await imageCompression.getDataUrlFromFile(compressedFile);
+                        // 1. قراءة الصورة الأصلية لمعرفة أبعادها
+                        const imageBitmap = await createImageBitmap(file);
+                        const originalWidth = imageBitmap.width;
+                        const originalHeight = imageBitmap.height;
 
-                            return new Promise((resolve, reject) => {
-                                const img = new Image();
-                                img.onload = () => {
-                                    const originalWidth = img.width;
-                                    const originalHeight = img.height;
-                                    let ratio = originalWidth / originalHeight;
-                                    let imgWidth = A4_WIDTH;
-                                    let imgHeight = A4_WIDTH / ratio;
-
-                                    // حساب الأبعاد والتوسيط
-                                    if (imgHeight > A4_HEIGHT) {
-                                        imgHeight = A4_HEIGHT;
-                                        imgWidth = A4_HEIGHT * ratio;
-                                    }
-
-                                    const x = (A4_WIDTH - imgWidth) / 2;
-                                    const y = (A4_HEIGHT - imgHeight) / 2;
-
-                                    if (i > 0) {
-                                        doc.addPage('a4', 'p');
-                                    }
-                                    doc.addImage(imageURI, 'JPEG', x, y, imgWidth, imgHeight);
-                                    resolve();
+                        // 2. خطوة الضغط (الأداء والكفاءة)
+                        if (shouldCompress) {
+                            convertBtn.textContent = `جاري ضغط الصورة ${i + 1} من ${totalImages}... 💨`;
+                            try {
+                                const options = {
+                                    maxSizeMB: 0.3, // ⚠️ تم تعديل قيمة الضغط لـ 0.3 ميجابايت لضمان سرعة أكبر
+                                    maxWidthOrHeight: 1600, 
+                                    useWebWorker: true, 
                                 };
-                                img.onerror = reject;
-                                img.src = imageURI;
-                            });
-                        })());
+                                compressedFile = await imageCompression(file, options);
+                            } catch (error) {
+                                console.error('Compression error, using original file:', error);
+                                compressedFile = file; 
+                            }
+                        }
+                        
+                        convertBtn.textContent = `جاري إضافة الصورة ${i + 1} من ${totalImages}... 🖼️`;
+                        
+                        const imageURI = await imageCompression.getDataUrlFromFile(compressedFile);
+
+                        // 3. حساب الأبعاد والتوسيط
+                        let ratio = originalWidth / originalHeight;
+                        let imgWidth = A4_WIDTH;
+                        let imgHeight = A4_WIDTH / ratio;
+
+                        if (imgHeight > A4_HEIGHT) {
+                            imgHeight = A4_HEIGHT;
+                            imgWidth = A4_HEIGHT * ratio;
+                        }
+
+                        const x = (A4_WIDTH - imgWidth) / 2;
+                        const y = (A4_HEIGHT - imgHeight) / 2;
+
+
+                        // 4. إضافة الصفحة والصورة
+                        if (i > 0) {
+                            doc.addPage();
+                        }
+                        doc.addImage(imageURI, 'JPEG', x, y, imgWidth, imgHeight);
                     }
-                    
-                    // الانتظار حتى اكتمال جميع عمليات الضغط والإضافة بالتوازي
-                    await Promise.all(conversionPromises);
 
                     // 5. حفظ المستند
                     const pdfBlob = doc.output('blob');
                     generatedPDFBlob = pdfBlob;
 
-                    convertBtn.textContent = '✅ اكتمل التحويل بنجاح! 🥳';
+                    convertBtn.textContent = '✅ اكتمل التحويل محليًا وبسرعة! 🥳';
 
                     // 6. عرض التفاصيل النهائية
                     const currentFilename = pdfNameInput.value.trim() || 'مؤقت_الزقازيق_تجارة_ملف';
@@ -789,13 +766,10 @@
             } catch (error) {
                 console.error('An unexpected error occurred during conversion:', error);
                 convertBtn.textContent = '❌ حدث خطأ غير متوقع! حاول البدء من جديد.';
-                // 💡 رسالة واضحة تشرح سبب المشكلة للطالب
-                alert(`❌ فشل التحويل: حدث خطأ أثناء المعالجة (غالباً بسبب نفاد ذاكرة المتصفح - RAM).
-                
-                الرجاء الضغط على "البدء من جديد" واختيار عدد أقل من الصور (لا تزيد عن ${MAX_IMAGES_FOR_SAFETY} صورة كحد أقصى) لتجنب هذه المشكلة.`);
+                alert('حدث خطأ أثناء التحويل. يرجى محاولة استخدام عدد أقل من الصور أو إعادة تشغيل الصفحة.');
 
             } finally {
-                // يتم تنفيذ هذا الكود دائماً سواء نجحت العملية أو فشلت
+                // 💡 يتم تنفيذ هذا الكود دائماً سواء نجحت العملية أو فشلت
                 convertBtn.disabled = false;
                 resetBtn.style.display = 'flex';
                 activateShareButton();
@@ -823,17 +797,17 @@
             link.click();
             document.body.removeChild(link);
             
-            // الإجراء الأهم: تنظيف المتصفح بالكامل بعد حفظ الملف لضمان عدم تأثر العمليات اللاحقة
+            // 💡 الإجراء الأهم: تنظيف المتصفح بالكامل بعد حفظ الملف لضمان عدم تأثر العمليات اللاحقة
             setTimeout(() => {
                 resetBtn.click();
-            }, 500); 
+            }, 500); // 500ms كافية لضمان بدء التنزيل قبل التنظيف
         });
 
         // 5. وظيفة زر المعاينة - تم تحسين إنشاء الرابط المؤقت
         function activatePreviewButton() {
             if (!generatedPDFBlob) return;
             
-            // تحرير الرابط القديم قبل إنشاء رابط جديد لتنظيف الذاكرة
+            // 💡 تحرير الرابط القديم قبل إنشاء رابط جديد لتنظيف الذاكرة
             if (pdfUrlForPreview) {
                  URL.revokeObjectURL(pdfUrlForPreview);
             }
@@ -880,7 +854,7 @@
             }
         }
         
-        // وظيفة موحدة لإعادة تعيين المتغيرات وتنظيف الذاكرة
+        // 💡 وظيفة موحدة لإعادة تعيين المتغيرات وتنظيف الذاكرة
         function resetStateVariables() {
             filesArray = [];
             uploadedPdfFile = null;
